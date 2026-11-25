@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Сертификат — Каролина Иванова</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  :root{
+    --orange:#E8542A;
+    --orange-d:#D0461F;
+    --card:#7E8186;
+    --card-d:#6A6D72;
+    --ink:#1A1A1A;
+  }
+
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(circle at 30% 20%, #262626 0%, #131313 55%, #0d0d0d 100%);
+    font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    color:#fff;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ────────── floating feather motes ────────── */
+  .mote{
+    position:fixed;
+    pointer-events:none;
+    background:rgba(255,255,255,.5);
+    border-radius:50% 0 50% 50%;
+    animation:drift linear infinite;
+    will-change:transform;
+  }
+  @keyframes drift{
+    0%  {transform:translate3d(0,110vh,0) rotate(0deg);opacity:0}
+    12% {opacity:.55}
+    88% {opacity:.55}
+    100%{transform:translate3d(60px,-15vh,0) rotate(420deg);opacity:0}
+  }
+
+  /* ────────── stage ────────── */
+  .stage{
+    perspective:1200px;
+    perspective-origin:50% 50%;
+    width:min(94vw,660px);
+    aspect-ratio:660/470;
+    position:relative;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    z-index:2;
+  }
+
+  .stack{
+    position:absolute;
+    inset:0;
+    transform-style:preserve-3d;
+    transition:transform .25s ease-out;
+    will-change:transform;
+  }
+
+  /* ────────── envelope ────────── */
+  .envelope{
+    position:absolute;
+    inset:0;
+    z-index:1;
+    transition:transform .8s cubic-bezier(.22,.68,0,1),
+               opacity .6s .2s ease;
+    transform-style:preserve-3d;
+  }
+
+  .env-shell{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(158deg,var(--card) 0%,var(--card-d) 100%);
+    border-radius:5px;
+    box-shadow:
+      0 34px 70px -18px rgba(0,0,0,.72),
+      0 2px 0 rgba(255,255,255,.06) inset;
+    overflow:hidden;
+  }
+  /* subtle paper grain */
+  .env-shell::after{
+    content:"";
+    position:absolute;inset:0;
+    background-image:repeating-linear-gradient(
+      102deg,rgba(255,255,255,.022) 0 1px,transparent 1px 4px);
+    opacity:.9;
+  }
+
+  /* envelope pocket seams */
+  .seam{
+    position:absolute;
+    bottom:0;left:0;right:0;
+    height:62%;
+    background:linear-gradient(180deg,
+      transparent 0%,
+      rgba(0,0,0,.05) 45%,
+      rgba(0,0,0,.14) 100%);
+    clip-path:polygon(0 100%,0 34%,24% 100%);
+  }
+
+  /* flap */
+  .flap{
+    position:absolute;
+    top:0;left:0;
+    width:100%;
+    height:58%;
+    transform-origin:top center;
+    transform-style:preserve-3d;
+    transition:transform .62s .12s cubic-bezier(.4,0,.25,1);
+    z-index:6;
+  }
+  .flap-face{
+    position:absolute;
+    inset:0;
+    clip-path:polygon(0 0,100% 0,50% 100%);
+    background:linear-gradient(180deg,#878A8F 0%,#75787D 62%,#6C6F74 100%);
+    border-radius:5px 5px 0 0;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);
+  }
+  /* the orange inner sheet peeking through the flap */
+  .flap-inner{
+    position:absolute;
+    inset:0;
+    clip-path:polygon(5% 4%,95% 4%,50% 87%);
+    background:linear-gradient(180deg,#F06A3E 0%,var(--orange) 55%,var(--orange-d) 100%);
+    opacity:.96;
+  }
+
+  /* snap button */
+  .snap{
+    position:absolute;
+    left:50%;top:50%;
+    width:9.4%;aspect-ratio:1;
+    transform:translate(-50%,-50%);
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 36% 30%,#F2F2F2 0%,#C6C8CA 34%,#8E9194 72%,#6F7275 100%);
+    box-shadow:
+      0 2px 5px rgba(0,0,0,.42),
+      0 0 0 1px rgba(0,0,0,.16),
+      0 1px 0 rgba(255,255,255,.55) inset;
+    z-index:9;
+    display:grid;
+    place-items:center;
+    transition:transform .35s ease,opacity .3s,box-shadow .35s;
+  }
+  .snap::after{
+    content:"";
+    width:34%;aspect-ratio:1;
+    border-radius:50%;
+    background:radial-gradient(circle at 40% 35%,#9A9DA0,#7C7F82);
+    box-shadow:0 1px 1px rgba(255,255,255,.35) inset;
+  }
+  .stage:hover .snap{
+    transform:translate(-50%,-50%) scale(1.09);
+    box-shadow:0 4px 12px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.18),
+               0 1px 0 rgba(255,255,255,.7) inset;
+  }
+  .hint{
+    position:absolute;
+    left:50%;top:calc(50% + 46px);
+    transform:translateX(-50%);
+    font-size:10.5px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.62);
+    white-space:nowrap;
+    z-index:9;
+    text-shadow:0 1px 3px rgba(0,0,0,.4);
+    animation:pulse 2.6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:.5}
+    50%{opacity:1}
+  }
+
+  /* ────────── certificate: orange sheet ────────── */
+  .sheet{
+    position:absolute;
+    left:9%;top:11%;
+    width:82%;height:78%;
+    background:linear-gradient(163deg,#EE6C40 0%,var(--orange) 42%,var(--orange-d) 100%);
+    border-radius:2px;
+    z-index:3;
+    padding:5.4% 6.4%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    opacity:0;
+    transform:translateY(46px) scale(.95);
+    transition:opacity .5s .34s ease,
+               transform .78s .34s cubic-bezier(.22,.75,.15,1);
+    box-shadow:0 12px 34px -8px rgba(232,84,42,.4);
+  }
+
+  .s-title{
+    font-size:clamp(19px,5.4vw,37px);
+    font-weight:800;
+    letter-spacing:.075em;
+    line-height:.96;
+    text-transform:uppercase;
+  }
+  .s-sub{
+    font-size:clamp(8px,1.72vw,11.5px);
+    font-weight:300;
+    letter-spacing:.035em;
+    opacity:.82;
+    margin-top:.42em;
+  }
+  .s-name{
+    font-size:clamp(15px,3.95vw,27px);
+    font-weight:700;
+    letter-spacing:.045em;
+    line-height:1.1;
+    text-transform:uppercase;
+    margin-top:.95em;
+  }
+  .s-desc{
+    font-size:clamp(8.5px,1.78vw,12px);
+    font-weight:400;
+    line-height:1.5;
+    opacity:.94;
+    margin-top:.9em;
+  }
+  .s-meta{
+    margin-top:1.55em;
+    font-size:clamp(7px,1.42vw,9.5px);
+    font-weight:300;
+    letter-spacing:.055em;
+    opacity:.72;
+    line-height:1.55;
+  }
+  .s-meta b{
+    display:block;
+    font-weight:600;
+    opacity:1;
+    letter-spacing:.02em;
+    margin-top:.18em;
+    font-size:1.16em;
+  }
+  .s-brand{
+    margin-top:.85em;
+    font-size:clamp(8.5px,1.65vw,11.5px);
+    font-weight:700;
+    letter-spacing:.2em;
+    opacity:.86;
+  }
+
+  /* ────────── acrylic plate ────────── */
+  .plate{
+    position:absolute;
+    left:2%;top:2%;
+    width:96%;height:96%;
+    z-index:5;
+    opacity:0;
+    transform:translateY(70px) scale(.95);
+    transition:opacity .55s .18s ease,
+               transform .82s .18s cubic-bezier(.22,.75,.15,1);
+    pointer-events:none;
+  }
+  .plate-face{
+    position:absolute;
+    inset:0;
+    border-radius:3px;
+    background:linear-gradient(147deg,
+      rgba(255,255,255,.085) 0%,
+      rgba(255,255,255,.028) 34%,
+      rgba(255,255,255,.012) 62%,
+      rgba(255,255,255,.055) 100%);
+    border:1px solid rgba(255,255,255,.15);
+    overflow:hidden;
+  }
+  /* bright top & left edge — light catching the acrylic */
+  .plate-face::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-top:1.5px solid rgba(255,255,255,.5);
+    border-left:1.5px solid rgba(255,255,255,.3);
+    border-radius:3px 3px 0 0;
+    pointer-events:none;
+  }
+  /* thickness: bottom & right edges */
+  .plate-face::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-bottom:2.5px solid rgba(255,255,255,.19);
+    border-right:2.5px solid rgba(255,255,255,.13);
+    border-radius:0 0 3px 3px;
+    pointer-events:none;
+  }
+  /* glare that follows the cursor */
+  .glare{
+    position:absolute;
+    width:52%;aspect-ratio:1;
+    border-radius:50%;
+    background:radial-gradient(circle,
+      rgba(255,255,255,.19) 0%,
+      rgba(255,255,255,.085) 34%,
+      rgba(255,255,255,.02) 62%,
+      transparent 78%);
+    transform:translate(-50%,-50%);
+    left:34%;top:32%;
+    transition:left .1s linear,top .1s linear;
+    pointer-events:none;
+    filter:blur(3px);
+  }
+  .glare-2{
+    position:absolute;
+    width:26%;aspect-ratio:1;
+    border-radius:50%;
+    background:radial-gradient(circle,rgba(255,255,255,.11) 0%,transparent 72%);
+    transform:translate(-50%,-50%);
+    left:78%;top:74%;
+    transition:left .16s linear,top .16s linear;
+    pointer-events:none;
+    filter:blur(2px);
+  }
+
+  /* ────────── opened state ────────── */
+  .stage.open .envelope{
+    transform:translateY(76px) scale(.9);
+    opacity:.9;
+  }
+  .stage.open .flap{transform:rotateX(-172deg)}
+  .stage.open .snap{
+    opacity:0;
+    transform:translate(-50%,-50%) scale(.6);
+    pointer-events:none;
+  }
+  .stage.open .hint{opacity:0;animation:none}
+  .stage.open .sheet{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+  .stage.open .plate{
+    opacity:1;
+    transform:translateY(0) scale(1);
+  }
+
+  /* ────────── footer note ────────── */
+  .note{
+    position:fixed;
+    bottom:20px;left:50%;
+    transform:translateX(-50%);
+    font-size:11px;
+    letter-spacing:.09em;
+    color:rgba(255,255,255,.3);
+    opacity:0;
+    transition:opacity .6s 1.15s;
+    white-space:nowrap;
+    z-index:3;
+  }
+  .note.show{opacity:1}
+  .note b{color:rgba(255,255,255,.52);font-weight:500}
+
+  @media (max-width:520px){
+    .note{font-size:9.5px;bottom:14px;letter-spacing:.07em}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage" role="button" tabindex="0" aria-label="Открыть сертификат Каролины Ивановой">
+  <div class="stack" id="stack">
+
+    <!-- envelope -->
+    <div class="envelope">
+      <div class="env-shell">
+        <div class="seam"></div>
+      </div>
+      <div class="flap">
+        <div class="flap-face"></div>
+        <div class="flap-inner"></div>
+      </div>
+    </div>
+
+    <!-- orange printed sheet -->
+    <div class="sheet">
+      <div class="s-title">Сертификат</div>
+      <div class="s-sub">свидетельствует о том, что</div>
+      <div class="s-name">Каролина<br>Иванова</div>
+      <div class="s-desc">
+        успешно окончила Практикум<br>
+        по полиграфии с отработкой<br>
+        практических навыков
+      </div>
+      <div class="s-meta">
+        АВТОР КУРСА · ПРАКТИКУМА
+        <b>Любовь Фахуртдинова</b>
+      </div>
+      <div class="s-brand">LOGO.DEL</div>
+    </div>
+
+    <!-- acrylic plate on top -->
+    <div class="plate">
+      <div class="plate-face">
+        <div class="glare" id="glare"></div>
+        <div class="glare-2" id="glare2"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="snap" aria-hidden="true"></div>
+  <div class="hint">нажмите</div>
+</div>
+
+<div class="note" id="note">Сертификат · Практикум по полиграфии · <b>2026</b></div>
+
+<script>
+(function(){
+  const stage = document.getElementById('stage');
+  const stack = document.getElementById('stack');
+  const glare = document.getElementById('glare');
+  const glare2 = document.getElementById('glare2');
+  const note = document.getElementById('note');
+  let open = false;
+
+  function reveal(){
+    if(open) return;
+    open = true;
+    stage.classList.add('open');
+    setTimeout(()=> note.classList.add('show'), 1000);
+  }
+
+  stage.addEventListener('click', reveal);
+  stage.addEventListener('keydown', e=>{
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); reveal(); }
+  });
+
+  /* tilt + glare on pointer */
+  function onMove(x, y){
+    if(!open) return;
+    const r = stage.getBoundingClientRect();
+    const cx = r.left + r.width/2;
+    const cy = r.top  + r.height/2;
+    const dx = Math.max(-1, Math.min(1, (x - cx) / (r.width/2)));
+    const dy = Math.max(-1, Math.min(1, (y - cy) / (r.height/2)));
+
+    stack.style.transform =
+      'rotateY(' + (dx*5.5).toFixed(2) + 'deg) ' +
+      'rotateX(' + (-dy*3.6).toFixed(2) + 'deg)';
+
+    const p = glare.parentElement.getBoundingClientRect();
+    glare.style.left  = (x - p.left) + 'px';
+    glare.style.top   = (y - p.top)  + 'px';
+    glare2.style.left = ((x - p.left) * .62 + p.width * .5) + 'px';
+    glare2.style.top  = ((y - p.top)  * .62 + p.height * .46) + 'px';
+  }
+
+  document.addEventListener('mousemove', e=> onMove(e.clientX, e.clientY));
+  document.addEventListener('touchmove', e=>{
+    if(e.touches[0]) onMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, {passive:true});
+
+  /* floating motes — feather dust */
+  for(let i=0;i<22;i++){
+    const m = document.createElement('div');
+    m.className = 'mote';
+    const w = 1.5 + Math.random()*3;
+    m.style.width  = w + 'px';
+    m.style.height = (w * (2.2 + Math.random()*1.8)) + 'px';
+    m.style.left   = (Math.random()*100) + '%';
+    m.style.opacity = 0;
+    m.style.animationDuration = (14 + Math.random()*20).toFixed(1) + 's';
+    m.style.animationDelay    = (-Math.random()*32).toFixed(1) + 's';
+    document.body.appendChild(m);
+  }
+})();
+</script>
+
+</body>
+</html>
